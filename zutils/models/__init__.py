@@ -5,7 +5,23 @@ from django.db import models
 
 
 class HTMLModel(models.Model):
-    def form_fields(self, with_value=False):
+
+    @classmethod
+    def form_fields(cls):
+        result = {}
+        for field in cls._meta.fields:
+            func = getattr(cls, "form_{}".format(field.name), cls.default_form_fields)
+            result[field.name] = func(field)
+        return result
+
+    @classmethod
+    def default_form_fields(cls, field):
+        return {'name': field.name,
+                'verbose_name': field.verbose_name,
+                'type': field.get_internal_type()
+                }
+
+    def form_ins_fields(self, with_value=False):
         """
         form_$(field.name), default_form_fields
 
@@ -16,11 +32,11 @@ class HTMLModel(models.Model):
         # 否则使用Field的格式化
         result = []
         for field in self._meta.fields:
-            func = getattr(self, "form_{}".format(field.name), self.default_form_fields)
+            func = getattr(self, "form_{}".format(field.name), self.default_form_ins_fields)
             result.append(func(field, with_value=with_value))
         return result
 
-    def default_form_fields(self, field, with_value=False):
+    def default_form_ins_fields(self, field, with_value=False):
         """
         form_$(field_type)_value, values_form_field
 
