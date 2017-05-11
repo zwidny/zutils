@@ -5,7 +5,6 @@ from django.db import models
 
 
 class HTMLModel(models.Model):
-
     @classmethod
     def form_fields(cls):
         result = {}
@@ -53,7 +52,8 @@ class HTMLModel(models.Model):
                                       self.values_form_field)
         else:
             field_processor = lambda x: None
-        return {'name': field.verbose_name,
+        return {'name': field.name,
+                'verbose_name': field.verbose_name,
                 'value': field_processor(getattr(self, field.name)),
                 'type': field.get_internal_type()
                 }
