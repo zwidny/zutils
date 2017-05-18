@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <div id="js-mount"></div>
+{% endblock %}
+
+{% block script %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
+
+    <script src="https://unpkg.com/react@15.3.2/dist/react.min.js"></script>
+    <script src="https://unpkg.com/react-dom@15.3.2/dist/react-dom.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.7.3/d3.min.js"></script>
+
+    <script type="text/babel" src="{% static 'js/components/detail.js' %}"></script>
+    <script type="text/babel" src="{% static 'js/components/ecg_grid.js' %}"></script>
+
+    <!-- show ecg list -->
+    <script type="text/babel">
+        class WaveComponent extends React.Component {
+            constructor(props) {
+                super(props);
+                this.state = {
+                    wave: {}
+                };
+
+                // Http Services
+                this.getWave = this.getWave.bind(this);
+            }
+
+            componentWillMount() {
+                this.getWave();
+            }
+
+            getWave() {
+                $.ajax({
+                    url: this.props.wave_url,
+                    method: 'GET',
+                    success: function (data, status, xhr) {
+                        this.setState({wave: data})
+                    }.bind(this)
+                });
+            }
+
+
+            render() {
+                let waveele = null;
+                if (!$.isEmptyObject(this.state.wave)) {
+                    waveele = <div>
+                        <ECGGrid svg_id="svg-wave"
+                                 wave={this.state.wave}
+                        />
+                    </div>
+                } else {
+                    waveele = <div></div>
+                }
+                return React.createElement(
+                    'div',
+                    {},
+                        <Detail data_url={this.props.data_url}/>,
+                    waveele
+                )
+            }
+        }
+
+        ReactDOM.render(
+                <WaveComponent data_url="{% url 'medexs_api:cgd-detail' pk=pk %}"
+                               wave_url="{% url 'medexs_api:get_wave' pk=pk %}"
+                />,
+            document.getElementById('js-mount')
+        );
+    </script>
+{% endblock %}
