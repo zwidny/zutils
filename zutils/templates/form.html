@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <div id="js-mount"></div>
+{% endblock %}
+
+{% block script %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
+
+    <script src="https://unpkg.com/react@15.3.2/dist/react.min.js"></script>
+    <script src="https://unpkg.com/react-dom@15.3.2/dist/react-dom.min.js"></script>
+    <script type="text/babel" src="{% static 'js/components/detail.js' %}"></script>
+
+
+    <!-- show ecg list -->
+    <script type="text/babel">
+        class RepoForm extends FormComponent {
+            postFormData(fd) {
+                $.ajax({
+                    url: this.props.form_url,
+                    method: 'post',
+                    data: fd,
+                    success: function (data, status, xhr) {
+                        window.location.href = data.url;
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alert(errorThrown);
+                    }.bind(this),
+                    contentType: false,
+                    processData: false
+                })
+
+            }
+        }
+        ReactDOM.render(
+                <RepoForm form_url="{% url 'dataplus:repo-create' %}"
+                          csrf_token="{{ csrf_token }}"
+                />,
+            document.getElementById('js-mount')
+        );
+    </script>
+{% endblock %}

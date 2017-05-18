@@ -2,7 +2,8 @@
 import logging
 from django import http
 from django.views.generic import View as DJView
-from django.http import Http404
+from django.template import loader
+from django.http import Http404, JsonResponse, HttpResponse
 
 logger = logging.getLogger('django.request')
 
@@ -42,8 +43,32 @@ class View(BaseView):
     """
     pk_url_kwarg = 'pk'
     model = None
-    template = 'detail.html'
+    template_detail = 'detail.html'
+    template = 'form.html'
     display_list = []
+
+    def get(self, request, *args, **kwargs):
+        if request.is_ajax():
+            form_fields = self.form_fields()
+            return JsonResponse(form_fields, safe=False)
+        else:
+            template = loader.get_template(self.template)
+            return HttpResponse(template.render({}, request))
+
+    def detail_get(self, request, *args, **kwargs):
+        obj = self.get_object(**kwargs)
+        obj = obj.form_ins_fields(with_value=True)
+        if self.display_list:
+            try:
+                obj = map(lambda x: obj[x], self.display_list)
+            except KeyError as e:
+                raise Exception("Fields must belong to {}".format(self.model._meta.model_name))
+
+        if not request.is_ajax():
+            template = loader.get_template(self.template_detail)
+            return HttpResponse(template.render({'pk': self.get_pk(**kwargs)}, request))
+
+        return JsonResponse(obj, safe=False)
 
     def get_pk(self, **kwargs):
         return kwargs.get(self.pk_url_kwarg, None)
