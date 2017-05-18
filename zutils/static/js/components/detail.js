@@ -27,6 +27,7 @@ class DefaultTypeComponent extends React.Component {
 
     }
 }
+
 class DateTimeFieldComponent extends React.Component {
     constructor(props) {
         super(props);
@@ -211,7 +212,11 @@ class FormComponent extends React.Component {
             method: 'post',
             data: fd,
             success: function (data, status, xhr) {
-                window.location.href = data.url;
+                if (data.status) {
+                    window.location.href = data.url;
+                } else {
+                    alert(data[Object.keys(data)[0]])
+                }
             }.bind(this),
             error: function (jqXHR, textStatus, errorThrown) {
                 alert(errorThrown);

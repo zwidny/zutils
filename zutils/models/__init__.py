@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 import time
 from django.db import models
+from abc import abstractmethod
 
 
 class HTMLModel(models.Model):
@@ -57,6 +58,10 @@ class HTMLModel(models.Model):
                 'value': field_processor(getattr(self, field.name)),
                 'type': field.get_internal_type()
                 }
+
+    @abstractmethod
+    def get_absolute_url(self):
+        pass
 
     @staticmethod
     def values_form_field(value):

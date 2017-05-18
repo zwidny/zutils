@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 import logging
 from django import http
 from django.views.generic import View as DJView
 from django.template import loader
 from django.http import Http404, JsonResponse, HttpResponse
+from django.forms.models import modelform_factory
+from django.utils.translation import gettext as _
 
 logger = logging.getLogger('django.request')
 
@@ -46,6 +49,7 @@ class View(BaseView):
     template_detail = 'detail.html'
     template = 'form.html'
     display_list = []
+    validator_class = None
 
     def get(self, request, *args, **kwargs):
         if request.is_ajax():
@@ -54,6 +58,31 @@ class View(BaseView):
         else:
             template = loader.get_template(self.template)
             return HttpResponse(template.render({}, request))
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_validator()(request.POST)
+        if form.is_valid():
+            ins = form.save()
+            return JsonResponse({'status': 1,
+                                 'url': ins.get_absolute_url()})
+        errors = form.errors
+        return JsonResponse(errors)
+
+    @classmethod
+    def get_display_list(cls):
+        return cls.display_list
+
+    @classmethod
+    def get_validator(cls):
+        if not cls.validator_class:
+            error_messages = {}
+            for field in cls.get_display_list():
+                error_messages[field] = {
+                    'required': _("{} is required.".format(cls.model._meta.get_field(field).verbose_name)),
+                }
+            return modelform_factory(cls.model, fields=cls.display_list, error_messages=error_messages)
+        else:
+            return cls.validator_class
 
     def detail_get(self, request, *args, **kwargs):
         obj = self.get_object(**kwargs)
