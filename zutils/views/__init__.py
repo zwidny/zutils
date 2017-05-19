@@ -7,6 +7,8 @@ from django.template import loader
 from django.http import Http404, JsonResponse, HttpResponse
 from django.forms.models import modelform_factory
 from django.utils.translation import gettext as _
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from zutils import abstractclassmethod
 
 logger = logging.getLogger('django.request')
 
@@ -40,7 +42,52 @@ class BaseView(DJView):
         return handler(request, *args, **kwargs)
 
 
-class View(BaseView):
+class RestPaginator(Paginator):
+    def page(self, number):
+        page = super(RestPaginator, self).page(number)
+        return {
+            'number': page.number,
+            'object_list': [obj.to_dict() for obj in page.object_list],
+            'count': page.paginator.count,
+            'per_page': page.paginator.per_page
+        }
+
+
+class ListView(BaseView):
+    PER_PAGE = 25
+    PAGE = 'page'
+    Paginator = None
+
+    @abstractclassmethod
+    def get_queryset(cls):
+        pass
+
+    @classmethod
+    def get_paginator_class(cls):
+        if not Paginator:
+            return RestPaginator
+        else:
+            return cls.Paginator
+
+    @classmethod
+    def get_page_num(cls, request, *args, **kwargs):
+        return request.GET.get(cls.PAGE, '1')
+
+    @classmethod
+    def get_object_list(cls, page_num):
+        object_list = cls.get_queryset()
+        paginator_cls = cls.get_paginator_class()
+        paginator = paginator_cls(object_list, per_page=cls.PER_PAGE)
+        try:
+            object_list = paginator.page(page_num)
+        except PageNotAnInteger:
+            object_list = paginator.page(1)
+        except EmptyPage:
+            object_list = paginator.page(paginator.num_pages)
+        return object_list
+
+
+class View(BaseView, ListView):
     """Generate rest field for model, 配合HTMLModel使用
 
     """
@@ -50,6 +97,12 @@ class View(BaseView):
     template = 'form.html'
     display_list = []
     validator_class = None
+    queryset = None
+
+    def get_queryset(self):
+        if not self.queryset:
+            return self.model.objects.all()
+        return self.queryset
 
     def get(self, request, *args, **kwargs):
         if request.is_ajax():

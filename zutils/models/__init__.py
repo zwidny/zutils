@@ -63,6 +63,10 @@ class HTMLModel(models.Model):
     def get_absolute_url(self):
         pass
 
+    @abstractmethod
+    def to_dict(self):
+        pass
+
     @staticmethod
     def values_form_field(value):
         return value
