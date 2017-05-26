@@ -6,6 +6,21 @@ from abc import abstractmethod
 
 
 class HTMLModel(models.Model):
+    """将model映射为form类型， form类型的处理由zutils.view.View配合JS来处理
+
+    当你在创建Model对应的Form时如果你想指定field的返回的类型， 需要
+    实现类似方法： form_{}.
+        e.g.  假设已有Field = id = model.AutoField(primary_key=True)
+              则定制的返回可定制如下：
+              def form_id(field):
+                  return {
+                    'name': field.name,
+                    'verbose_name'： field.verbose_name,
+                    'type': custom_type or field.get_internal_type()
+                  }
+
+    """
+
     @classmethod
     def form_fields(cls):
         result = {}

@@ -87,7 +87,7 @@ class ListView(BaseView):
         return object_list
 
 
-class View(BaseView, ListView):
+class View(ListView):
     """Generate rest field for model, 配合HTMLModel使用
 
     """
