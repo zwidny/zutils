@@ -57,14 +57,19 @@ class ListView(BaseView):
     PER_PAGE = 25
     PAGE = 'page'
     Paginator = None
+    display_list = []
+
+    @classmethod
+    def get_display_list(cls):
+        return cls.display_list
 
     @abstractclassmethod
-    def get_queryset(cls):
+    def get_queryset(cls, request, *args, **kwargs):
         pass
 
     @classmethod
     def get_paginator_class(cls):
-        if not Paginator:
+        if not cls.Paginator:
             return RestPaginator
         else:
             return cls.Paginator
@@ -74,8 +79,9 @@ class ListView(BaseView):
         return request.GET.get(cls.PAGE, '1')
 
     @classmethod
-    def get_object_list(cls, page_num):
-        object_list = cls.get_queryset()
+    def get_object_list(cls, request, *args, **kwargs):
+        page_num = cls.get_page_num(request, *args, **kwargs)
+        object_list = cls.get_queryset(request, *args, **kwargs)
         paginator_cls = cls.get_paginator_class()
         paginator = paginator_cls(object_list, per_page=cls.PER_PAGE)
         try:
@@ -95,11 +101,11 @@ class View(ListView):
     model = None
     template_detail = 'detail.html'
     template = 'form.html'
-    display_list = []
     validator_class = None
+    display_items = []
     queryset = None
 
-    def get_queryset(self):
+    def get_queryset(self, request, *args, **kwargs):
         if not self.queryset:
             return self.model.objects.all()
         return self.queryset
@@ -122,27 +128,23 @@ class View(ListView):
         return JsonResponse(errors)
 
     @classmethod
-    def get_display_list(cls):
-        return cls.display_list
-
-    @classmethod
     def get_validator(cls):
         if not cls.validator_class:
             error_messages = {}
-            for field in cls.get_display_list():
+            for field in cls.display_items:
                 error_messages[field] = {
                     'required': _("{} is required.".format(cls.model._meta.get_field(field).verbose_name)),
                 }
-            return modelform_factory(cls.model, fields=cls.display_list, error_messages=error_messages)
+            return modelform_factory(cls.model, fields=cls.display_items, error_messages=error_messages)
         else:
             return cls.validator_class
 
     def detail_get(self, request, *args, **kwargs):
         obj = self.get_object(**kwargs)
         obj = obj.form_ins_fields(with_value=True)
-        if self.display_list:
+        if self.display_items:
             try:
-                obj = map(lambda x: obj[x], self.display_list)
+                obj = map(lambda x: obj[x], self.display_items)
             except KeyError as e:
                 raise Exception("Fields must belong to {}".format(self.model._meta.model_name))
 
@@ -176,17 +178,17 @@ class View(ListView):
         """
         fields = self.model.form_fields()
         try:
-            obj = map(lambda x: fields[x], self.display_list)
+            obj = map(lambda x: fields[x], self.display_items)
         except KeyError as e:
             raise Exception(
-                "Field {} not belong to {}. Please check 'display_list' ".format(e, self.model._meta.model_name))
+                "Field {} not belong to {}. Please check 'display_items' ".format(e, self.model._meta.model_name))
         return obj
 
     def form_ins_fields(self, obj):
         obj = obj.form_ins_fields()
-        if self.display_list:
+        if self.display_items:
             try:
-                obj = map(lambda x: obj[x], self.display_list)
+                obj = map(lambda x: obj[x], self.display_items)
             except KeyError as e:
                 raise Exception("Fields must belong to {}".format(self.model._meta.model_name))
         return obj

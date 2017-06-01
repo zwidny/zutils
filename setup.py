@@ -11,7 +11,7 @@ with open(path.join(REPO, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 setup(
     name='zutils',
-    version='0.1.0',
+    version='0.1.1',
     description='Some utils for python dev',
     long_description=long_description,
     url='https://github.com/zwidny/zutils',
