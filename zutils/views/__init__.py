@@ -57,7 +57,17 @@ class ListView(BaseView):
     PER_PAGE = 25
     PAGE = 'page'
     Paginator = None
+    template = 'list.html'
     display_list = []
+
+    def get(self, request, *args, **kwargs):
+        if request.is_ajax():
+            object_list = self.get_object_list(request, *args, **kwargs)
+            return JsonResponse(object_list, safe=False)
+        else:
+            template = loader.get_template(self.template)
+            html = template.render({}, request)
+            return HttpResponse(html)
 
     @classmethod
     def get_display_list(cls):
