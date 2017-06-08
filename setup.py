@@ -10,7 +10,7 @@ with open(path.join(REPO, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 setup(
     name='zutils',
-    version='0.1.4',
+    version='0.1.5',
     description='Some utils for python dev',
     long_description=long_description,
     url='https://github.com/zwidny/zutils',
@@ -25,9 +25,9 @@ setup(
         'Programming Language :: Python :: 2',
     ],
     keywords='python dev utils',
-    packages=find_packages(include=('zutils',)),
+    packages=find_packages(),
     package_data={
-        'zutils': ['static', 'templates'],
+        'zutils': ['static/js/components/*', 'templates/*'],
     },
     install_requires=['django'],
 
