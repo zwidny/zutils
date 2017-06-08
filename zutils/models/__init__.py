@@ -82,6 +82,15 @@ class HTMLModel(models.Model):
     def to_dict(self):
         pass
 
+    @abstractmethod
+    def to_list_display(self):
+        """当在列表显示时， 需要显示的字段
+
+        Returns(dict):
+
+        """
+        pass
+
     @staticmethod
     def values_form_field(value):
         return value

@@ -47,7 +47,7 @@ class RestPaginator(Paginator):
         page = super(RestPaginator, self).page(number)
         return {
             'number': page.number,
-            'object_list': [obj.to_dict() for obj in page.object_list],
+            'object_list': [obj.to_list_display() for obj in page.object_list],
             'count': page.paginator.count,
             'per_page': page.paginator.per_page
         }

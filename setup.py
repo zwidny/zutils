@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 from setuptools import setup, find_packages
 from codecs import open
 from os import path
@@ -11,7 +10,7 @@ with open(path.join(REPO, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 setup(
     name='zutils',
-    version='0.1.2',
+    version='0.1.4',
     description='Some utils for python dev',
     long_description=long_description,
     url='https://github.com/zwidny/zutils',
@@ -26,7 +25,10 @@ setup(
         'Programming Language :: Python :: 2',
     ],
     keywords='python dev utils',
-    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+    packages=find_packages(include=('zutils',)),
+    package_data={
+        'zutils': ['static', 'templates'],
+    },
     install_requires=['django'],
 
 )
