@@ -115,10 +115,11 @@ class View(ListView):
     display_items = []
     queryset = None
 
-    def get_queryset(self, request, *args, **kwargs):
-        if not self.queryset:
-            return self.model.objects.all()
-        return self.queryset
+    @classmethod
+    def get_queryset(cls, request, *args, **kwargs):
+        if not cls.queryset:
+            return cls.model.objects.all()
+        return cls.queryset
 
     def get(self, request, *args, **kwargs):
         if request.is_ajax():
